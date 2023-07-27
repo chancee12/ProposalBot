@@ -135,13 +135,12 @@ if check_password():
                 st.markdown(f"**AI**: {st.session_state['generated'][i]}")
 
     if check_password():
-
-        with st.container():
+        with st.form(key="form"):
             user_input = st.text_input("User Input:", key="user_input")
             submit_button = st.form_submit_button("Submit")
 
-        if submit_button:
-            on_input_change()
+            if submit_button:
+                on_input_change()
 
         display_chat()
 

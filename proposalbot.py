@@ -67,7 +67,6 @@ def on_btn_click():
     del st.session_state.generated[:]
 
 if check_password():
-    st.set_page_config(layout="wide")
 
     st.sidebar.title("Contact")
     st.sidebar.info(
@@ -139,8 +138,7 @@ if check_password():
                 st.markdown(f"**AI**: {st.session_state['generated'][i]}")
 
     if check_password():
-        st.set_page_config(layout="wide")
-        ...
+        
         with st.container():
             st.text_input("User Input:", on_change=on_input_change, key="user_input")
 

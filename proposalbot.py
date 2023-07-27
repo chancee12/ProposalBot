@@ -47,14 +47,13 @@ def on_input_change():
             "Respond to RFP Questions": f"Generate a response to the following GIS-related RFP question: '{user_input}'",
             "Analyze Technical Requirements": f"Analyze the following technical requirements and provide an evaluation: '{user_input}'"
         }
-
+        prompt_to_use = prompt_mapping[st.session_state.selected_task]
         Conversation = ConversationChain(
             llm=llm, 
-            prompt=prompt_mapping[st.session_state.selected_task],
+            prompt=prompt_to_use,
             memory=st.session_state.entity_memory
         )
-
-        output = Conversation.complete(prompt_mapping[st.session_state.selected_task])
+        output = Conversation.complete(prompt_to_use)
         st.session_state.conversation_history += f"\nUser: {user_input}\nAI: {output}"
         st.session_state.generated.append(f"AI: {output}")
     st.session_state.user_input = ''
@@ -89,12 +88,13 @@ if check_password():
 
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-    MODEL = "gpt-4"
+    models = ["gpt-4", "text-davinci-003"]
+    selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0)
     
     llm = OpenAI(
         temperature=0,
         openai_api_key=openai.api_key,
-        model_name=MODEL,
+        model_name=selected_model,
         verbose=False
     )
 
@@ -128,16 +128,19 @@ if check_password():
 
     selected_task = st.selectbox("Select a task:", task_options, index=0, key='selected_task')
 
-
-
     def display_chat():
         for i in range(len(st.session_state['past'])):
             st.markdown(f"**User**: {st.session_state['past'][i]}")
-            st.markdown(f"**AI**: {st.session_state['generated'][i]}")
+            if i < len(st.session_state['generated']):
+                st.markdown(f"**AI**: {st.session_state['generated'][i]}")
 
-    with st.container():
-        st.text_input("User Input:", on_change=on_input_change, key="user_input")
+    if check_password():
+        st.set_page_config(layout="wide")
+        ...
+        with st.container():
+            st.text_input("User Input:", on_change=on_input_change, key="user_input")
 
-    display_chat()
+        display_chat()
 
-    st.button("Clear message", on_click=on_btn_click)
+        st.button("Clear message", on_click=on_btn_click)
+

@@ -11,6 +11,19 @@ import re
 # Configure the layout at the very beginning
 st.set_page_config(layout="wide")
 
+prompt_mapping = {
+            "Custom Prompt": user_input,
+            "Create Acronym List": f"Please create a deduplicated list of acronyms from the following text: '{user_input}'",
+            "Identify Key Proposal Requirements": f"Identify key requirements from the following proposal text: '{user_input}'",
+            "Summarize GIS Service Description": f"Provide a concise summary of the following GIS service description: '{user_input}'",
+            "Simplify Complex GIS Language": f"Simplify the following complex GIS-related language for a non-technical audience: '{user_input}'",
+            "Summarize Proposal Section": f"Provide a brief summary of the following proposal section: '{user_input}'",
+            "Revise Proposal Text": f"Revise the following proposal text for improved clarity and effectiveness: '{user_input}'",
+            "Identify Improvement Areas": f"Identify potential areas for improvement in the following proposal text: '{user_input}'",
+            "Respond to RFP Questions": f"Generate a response to the following GIS-related RFP question: '{user_input}'",
+            "Analyze Technical Requirements": f"Analyze the following technical requirements and provide an evaluation: '{user_input}'"
+        }
+
 def is_four_digit_number(string):
     pattern = r'^\d{4}$'
     return bool(re.match(pattern, string))
@@ -86,20 +99,8 @@ def on_input_change():
             st.error("😕 Please enter more than four digits.")
             return
 
-        prompt_mapping = {
-            "Custom Prompt": user_input,
-            "Create Acronym List": f"Please create a deduplicated list of acronyms from the following text: '{user_input}'",
-            "Identify Key Proposal Requirements": f"Identify key requirements from the following proposal text: '{user_input}'",
-            "Summarize GIS Service Description": f"Provide a concise summary of the following GIS service description: '{user_input}'",
-            "Simplify Complex GIS Language": f"Simplify the following complex GIS-related language for a non-technical audience: '{user_input}'",
-            "Summarize Proposal Section": f"Provide a brief summary of the following proposal section: '{user_input}'",
-            "Revise Proposal Text": f"Revise the following proposal text for improved clarity and effectiveness: '{user_input}'",
-            "Identify Improvement Areas": f"Identify potential areas for improvement in the following proposal text: '{user_input}'",
-            "Respond to RFP Questions": f"Generate a response to the following GIS-related RFP question: '{user_input}'",
-            "Analyze Technical Requirements": f"Analyze the following technical requirements and provide an evaluation: '{user_input}'"
-        }
         if st.session_state.selected_task in prompt_mapping:
-            prompt_to_use = prompt_mapping[st.session_state.selected_task]
+            prompt_to_use = prompt_mapping[st.session_state.selected_task].format(input=user_input)
 
         Conversation = ConversationChain(
             llm=llm, 

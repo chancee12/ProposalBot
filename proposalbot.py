@@ -107,7 +107,7 @@ if check_password():
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 
     models = ["gpt-4", "text-davinci-003"]
-    selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0)
+    selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0, key="model_selection")
     
     llm = OpenAI(
         temperature=0,

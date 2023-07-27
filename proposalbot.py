@@ -6,6 +6,10 @@ from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.llms import OpenAI
 import re
 
+
+# Configure the layout at the very beginning
+st.set_page_config(layout="wide")
+
 def is_four_digit_number(string):
     pattern = r'^\d{4}$'
     return bool(re.match(pattern, string))

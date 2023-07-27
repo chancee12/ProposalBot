@@ -45,6 +45,9 @@ llm = OpenAI(
         verbose=False
 )
 
+if 'selected_task' not in st.session_state:
+    st.session_state['selected_task'] = ''
+
 def on_input_change():
     user_input = st.session_state.user_input
     st.session_state.past.append(user_input)
@@ -62,6 +65,8 @@ def on_input_change():
             "Analyze Technical Requirements": f"Analyze the following technical requirements and provide an evaluation: '{user_input}'"
         }
         prompt_to_use = prompt_mapping[st.session_state.selected_task]
+        # Rest of the code
+
         Conversation = ConversationChain(
             llm=llm, 
             memory=st.session_state.entity_memory

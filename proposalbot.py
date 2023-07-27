@@ -69,8 +69,14 @@ Conversation = ConversationChain(
     memory=st.session_state.entity_memory,
 )
 
+# Ensures 'selected_task' exists in session state
 if 'selected_task' not in st.session_state:
     st.session_state['selected_task'] = ''
+
+# Then it's safe to use st.session_state['selected_task'] in your prompt_mapping
+prompt_to_use = ""  # default value
+if st.session_state.selected_task in prompt_mapping:
+    prompt_to_use = prompt_mapping[st.session_state.selected_task]
 
 def on_input_change():
     user_input = st.session_state.user_input

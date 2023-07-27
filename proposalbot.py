@@ -4,6 +4,8 @@ import openai
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.llms import OpenAI
+from langchain.memory import ConversationBufferMemory
+from langchain.prompt import PromptTemplate
 import re
 
 # Configure the layout at the very beginning
@@ -74,6 +76,10 @@ def on_input_change():
     user_input = st.session_state.user_input
     st.session_state.past.append(user_input)
     if user_input:
+        if is_four_digit_number(user_input):
+            st.error("😕 Please enter more than four digits.")
+            return
+
         prompt_mapping = {
             "Custom Prompt": user_input,
             "Create Acronym List": f"Please create a deduplicated list of acronyms from the following text: '{user_input}'",
@@ -88,8 +94,6 @@ def on_input_change():
         }
         if st.session_state.selected_task in prompt_mapping:
             prompt_to_use = prompt_mapping[st.session_state.selected_task]
-            # Rest of the code
-
 
         Conversation = ConversationChain(
             llm=llm, 

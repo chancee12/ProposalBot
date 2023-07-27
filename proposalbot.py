@@ -99,7 +99,7 @@ def on_input_change():
             llm=llm, 
             memory=st.session_state.entity_memory
         )
-        output = Conversation.complete(prompt_to_use)
+        output = Conversation.predict(prompt_to_use)
         st.session_state.conversation_history += f"\nUser: {user_input}\nAI: {output}"
         st.session_state.generated.append(f"AI: {output}")
     st.session_state.user_input = ''

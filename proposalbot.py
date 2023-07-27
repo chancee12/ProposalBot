@@ -51,7 +51,7 @@ if 'selected_task' not in st.session_state:
 def on_input_change():
     user_input = st.session_state.user_input
     st.session_state.past.append(user_input)
-    if user_input:
+    if user_input and st.session_state.selected_task in prompt_mapping:
         prompt_mapping = {
             "Custom Prompt": user_input,
             "Create Acronym List": f"Please create a deduplicated list of acronyms from the following text: '{user_input}'",
@@ -64,6 +64,9 @@ def on_input_change():
             "Respond to RFP Questions": f"Generate a response to the following GIS-related RFP question: '{user_input}'",
             "Analyze Technical Requirements": f"Analyze the following technical requirements and provide an evaluation: '{user_input}'"
         }
+        prompt_to_use = prompt_mapping[st.session_state.selected_task]
+        # Rest of the code
+
         prompt_to_use = prompt_mapping[st.session_state.selected_task]
         # Rest of the code
 

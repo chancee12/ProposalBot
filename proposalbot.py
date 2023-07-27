@@ -38,11 +38,33 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 models = ["gpt-4", "text-davinci-003"]
 selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0, key="model_selection")
 
+# Initialize OpenAI object
 llm = OpenAI(
-        temperature=0,
-        openai_api_key=openai.api_key,
-        model_name=selected_model,
-        verbose=False
+    temperature=0,
+    openai_api_key=openai.api_key,
+    model_name=selected_model,
+    verbose=False
+)
+
+# Initialize ConversationBufferMemory object
+if 'entity_memory' not in st.session_state:
+    st.session_state.entity_memory = ConversationBufferMemory(
+        llm=llm, 
+        ai_prefix="AI",
+        human_prefix="User",
+    )
+
+# Define the prompt template and create a ConversationChain object
+prompt_template = """
+Current conversation:
+{history}
+User: {input}
+AI:"""
+PROMPT = PromptTemplate(input_variables=["history", "input"], template=prompt_template)
+Conversation = ConversationChain(
+    llm=llm,
+    prompt=PROMPT,
+    memory=st.session_state.entity_memory,
 )
 
 if 'selected_task' not in st.session_state:

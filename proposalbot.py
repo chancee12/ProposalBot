@@ -24,6 +24,12 @@ prompt_mapping = {
             "Analyze Technical Requirements": f"Analyze the following technical requirements and provide an evaluation: '{user_input}'"
         }
 
+def get_prompt_mapping(user_input):
+    return {
+        "Custom Prompt": user_input,
+        ...
+    }
+
 def is_four_digit_number(string):
     pattern = r'^\d{4}$'
     return bool(re.match(pattern, string))

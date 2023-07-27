@@ -34,10 +34,10 @@ def check_password():
     else:
         return True
 
-# Place the llm initialization code here, before defining the on_input_change function.
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 models = ["gpt-4", "text-davinci-003"]
-selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0)
+selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0, key="model_selection")
+
 llm = OpenAI(
         temperature=0,
         openai_api_key=openai.api_key,
@@ -71,12 +71,6 @@ def on_input_change():
         st.session_state.generated.append(f"AI: {output}")
     st.session_state.user_input = ''
 
-
-def on_btn_click():
-    del st.session_state.past[:]
-    del st.session_state.generated[:]
-
-
 def on_btn_click():
     del st.session_state.past[:]
     del st.session_state.generated[:]
@@ -102,18 +96,6 @@ if check_password():
         * Generating responses to common GIS-related RFP questions
         In addition, the assistant is equipped with a deep understanding of GIS concepts and government contracting specifics, ensuring that you have a dedicated, knowledgeable tool at your disposal for proposal revision and optimization.
         """
-    )
-
-    openai.api_key = st.secrets["OPENAI_API_KEY"]
-
-    models = ["gpt-4", "text-davinci-003"]
-    selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0, key="model_selection")
-    
-    llm = OpenAI(
-        temperature=0,
-        openai_api_key=openai.api_key,
-        model_name=selected_model,
-        verbose=False
     )
 
     if 'entity_memory' not in st.session_state:
@@ -144,7 +126,7 @@ if check_password():
         "Analyze Technical Requirements"
     ]
 
-    selected_task = st.selectbox("Select a task:", task_options, index=0, key='selected_task')
+    selected_task = st.selectbox("Select a task:", task_options, index=0, key='task_selection')
 
     def display_chat():
         for i in range(len(st.session_state['past'])):
@@ -153,11 +135,8 @@ if check_password():
                 st.markdown(f"**AI**: {st.session_state['generated'][i]}")
 
     if check_password():
-
-        with st.container():
+        with st.form(key='input_form'):
             st.text_input("User Input:", on_change=on_input_change, key="user_input")
+            st.form_submit_button("Clear message", on_click=on_btn_click)
 
         display_chat()
-
-        st.button("Clear message", on_click=on_btn_click)
-

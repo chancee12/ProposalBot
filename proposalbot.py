@@ -64,13 +64,14 @@ def on_input_change():
         prompt_to_use = prompt_mapping[st.session_state.selected_task]
         Conversation = ConversationChain(
             llm=llm, 
-            prompt=prompt_to_use,
+            prompt={'text': prompt_to_use, 'input_variables': []},
             memory=st.session_state.entity_memory
         )
         output = Conversation.complete(prompt_to_use)
         st.session_state.conversation_history += f"\nUser: {user_input}\nAI: {output}"
         st.session_state.generated.append(f"AI: {output}")
     st.session_state.user_input = ''
+
 
 def on_btn_click():
     del st.session_state.past[:]

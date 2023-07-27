@@ -125,12 +125,11 @@ if check_password():
         "Respond to RFP Questions",
         "Analyze Technical Requirements"
     ]
-    if 'selected_task' not in st.session_state:
-        st.session_state.selected_task = "Custom Prompt"
 
-    st.session_state.selected_task = st.selectbox("Select a task:", task_options, key='selected_task')
+    selected_task = st.selectbox("Select a task:", task_options, index=0, key='selected_task')
 
-    
+
+
     def display_chat():
         for i in range(len(st.session_state['past'])):
             st.markdown(f"**User**: {st.session_state['past'][i]}")

@@ -6,7 +6,6 @@ from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.llms import OpenAI
 import re
 
-
 # Configure the layout at the very beginning
 st.set_page_config(layout="wide")
 
@@ -35,6 +34,17 @@ def check_password():
     else:
         return True
 
+# Place the llm initialization code here, before defining the on_input_change function.
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+models = ["gpt-4", "text-davinci-003"]
+selected_model = st.sidebar.selectbox("Select a model (GPT-4 is default and preferred for most tasks. text-davinci-003 is an older model and may not perform as well):", models, index=0)
+llm = OpenAI(
+        temperature=0,
+        openai_api_key=openai.api_key,
+        model_name=selected_model,
+        verbose=False
+)
+
 def on_input_change():
     user_input = st.session_state.user_input
     st.session_state.past.append(user_input)
@@ -61,6 +71,11 @@ def on_input_change():
         st.session_state.conversation_history += f"\nUser: {user_input}\nAI: {output}"
         st.session_state.generated.append(f"AI: {output}")
     st.session_state.user_input = ''
+
+def on_btn_click():
+    del st.session_state.past[:]
+    del st.session_state.generated[:]
+
 
 def on_btn_click():
     del st.session_state.past[:]
@@ -138,7 +153,7 @@ if check_password():
                 st.markdown(f"**AI**: {st.session_state['generated'][i]}")
 
     if check_password():
-        
+
         with st.container():
             st.text_input("User Input:", on_change=on_input_change, key="user_input")
 

@@ -5,7 +5,7 @@ from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.llms import OpenAI
 from langchain.memory import ConversationBufferMemory
-from langchain.prompt import PromptTemplate
+from langchain.prompts.prompt import PromptTemplate
 import re
 
 # Configure the layout at the very beginning

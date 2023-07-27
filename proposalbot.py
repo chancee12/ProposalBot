@@ -43,20 +43,23 @@ if check_password():
         [LinkedIn](www.linkedin.com/in/chancee-vincent-4371651b6)
         """
     )
-    st.title("Chancee's Proposal Chatbot Beta V.1.0.3")
+    st.title("Axim's GIS Government Proposal Assistant Beta V.1.0.3")
     st.markdown(
         """
-        This AI assistant is designed specifically to revise government contracting proposals. Utilizing GPT-3, it assists in:
+        Welcome to Axim's GIS Government Proposal Assistant! This AI assistant, powered by GPT-4, has been designed to provide invaluable support during the government contracting proposal process. The AI assistant excels in:
         * Restructuring sentences for improved readability
-        * Clarifying ambiguities
-        * Eliminating unnecessary redundancies
-        * Enhancing the overall presentation
+        * Clarifying ambiguities and eliminating unnecessary redundancies
+        * Summarizing key points of lengthy texts
+        * Identifying key proposal requirements and potential areas of improvement
+        * Creating and deduplicating acronym lists
+        * Generating responses to common GIS-related RFP questions
+        In addition, the assistant is equipped with a deep understanding of GIS concepts and government contracting specifics, ensuring that you have a dedicated, knowledgeable tool at your disposal for proposal revision and optimization.
         """
     )
 
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-    MODEL = st.selectbox("Choose model", ("text-davinci-003", "gpt-4"))
+    MODEL = "gpt-4"
     
     llm = OpenAI(
         temperature=0,
@@ -68,14 +71,36 @@ if check_password():
     if 'entity_memory' not in st.session_state:
             st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=100 )
 
-    Conversation = ConversationChain(
-            llm=llm, 
-            prompt="",
-            memory=st.session_state.entity_memory
-    )
+    task_options = [
+        "Custom Prompt",
+        "Create Acronym List",
+        "Identify Key Proposal Requirements",
+        "Summarize GIS Service Description",
+        "Simplify Complex GIS Language",
+        "Summarize Proposal Section",
+        "Revise Proposal Text",
+        "Identify Improvement Areas",
+        "Respond to RFP Questions",
+        "Analyze Technical Requirements"
+    ]
+    selected_task = st.selectbox("Select a task:", task_options)
 
-    user_input = st.text_area("Type your question:", "")
+    user_input = st.text_area("Type or paste your text here:", "")
 
     if user_input:
+        prompt_mapping = {
+            # Replace with extensive prompt for each task
+            "Custom Prompt": user_input,
+            "Create Acronym List": f"{user_input} - extract and deduplicate acronyms",
+            "Identify Key Proposal Requirements": f"{user_input} - identify key requirements",
+            # and so on for all the tasks...
+        }
+
+        Conversation = ConversationChain(
+            llm=llm, 
+            prompt=prompt_mapping[selected_task],
+            memory=st.session_state.entity_memory
+        )
+
         output = Conversation(user_input)
-        st.text_area("Bot's answer:", output)
+        st.text_area("AI's response:", output)

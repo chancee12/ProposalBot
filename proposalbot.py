@@ -64,7 +64,6 @@ def on_input_change():
         prompt_to_use = prompt_mapping[st.session_state.selected_task]
         Conversation = ConversationChain(
             llm=llm, 
-            prompt={'text': prompt_to_use, 'input_variables': []},
             memory=st.session_state.entity_memory
         )
         output = Conversation.complete(prompt_to_use)

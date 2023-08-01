@@ -13,7 +13,7 @@ class Basic:
 
     def __init__(self):
         utils.configure_openai_api_key()
-        self.openai_model = st.selectbox('Select LLM model', ('gpt-3.5-turbo', 'gpt-4'))
+        self.openai_model = st.selectbox('Select LLM model', ('gpt-4', 'gpt-3.5-turbo'))
 
     def setup_chain(self):
         llm = OpenAI(model_name=self.openai_model, temperature=0, streaming=True)

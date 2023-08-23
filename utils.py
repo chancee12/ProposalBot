@@ -49,7 +49,6 @@ def configure_openai_api_key():
         st.session_state['OPENAI_API_KEY'] = openai_api_key
         os.environ['OPENAI_API_KEY'] = openai_api_key
     else:
-        st.error("Please add your OpenAI API key to continue.")
-        st.info("Obtain your key from this link: https://platform.openai.com/account/api-keys")
+        st.error("Please add your OpenAI API key to under the left sidebar to continue.")
         st.stop()
     return openai_api_key

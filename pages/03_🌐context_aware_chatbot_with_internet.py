@@ -50,7 +50,7 @@ if check_password():
 
         def setup_chain(self):
             llm = ChatOpenAI(model_name=self.openai_model, streaming=True)
-            chain = ConversationChain(llm=llm, memory=self.memory, verbose=True)
+            chain = ConversationChain(llm=llm, memory=self.memory, verbose=True)  # Include memory object in chain setup
             return chain
 
         @utils.enable_chat_history

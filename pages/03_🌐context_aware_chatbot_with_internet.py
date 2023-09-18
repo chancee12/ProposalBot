@@ -61,9 +61,10 @@ if check_password():
 
             # Setup LLM and Agent
             llm = ChatOpenAI(model_name=self.openai_model, streaming=True)
+            self.chain = ConversationChain(llm=llm, memory=self.memory, verbose=True)  # Create a chain object with memory
             agent = initialize_agent(
                 tools=tools,
-                llm=llm,  # Pass the llm object here
+                llm=self.chain,  # Pass the chain object here
                 agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
                 handle_parsing_errors=True,
                 verbose=True
@@ -78,7 +79,7 @@ if check_password():
                 utils.display_msg(user_query, 'user')
                 with st.chat_message("assistant"):
                     st_cb = StreamlitCallbackHandler(st.container())
-                    response = agent.run(user_query, callbacks=[st_cb])
+                    response = self.chain.run(user_query, callbacks=[st_cb])  # Use chain.run instead of agent.run
                     st.session_state.messages.append({"role": "assistant", "content": response})
                     st.write(response)
 

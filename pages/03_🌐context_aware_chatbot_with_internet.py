@@ -7,6 +7,7 @@ from langchain.agents import AgentType, initialize_agent, Tool
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import DuckDuckGoSearchRun
 from langchain.callbacks import StreamlitCallbackHandler
+from langchain.memory.chat_message_histories import StreamlitChatMessageHistory  # New import
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -46,7 +47,8 @@ if check_password():
         def __init__(self):
             utils.configure_openai_api_key()
             self.openai_model = st.selectbox('Select LLM model', ('gpt-4', 'gpt-3.5-turbo'))
-            self.memory = ConversationBufferMemory()  # Initialize memory object
+            self.msgs = StreamlitChatMessageHistory()  # New line
+            self.memory = ConversationBufferMemory(chat_memory=self.msgs, return_messages=True, memory_key="chat_history", output_key="output")  # Updated line
 
         def setup_chain(self):
             llm = ChatOpenAI(model_name=self.openai_model, streaming=True)

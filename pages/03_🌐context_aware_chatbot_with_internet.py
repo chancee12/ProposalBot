@@ -1,87 +1,98 @@
 import streamlit as st
-from langchain.agents import ConversationalChatAgent, AgentExecutor
-from langchain.callbacks import StreamlitCallbackHandler
-from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
-from langchain.tools import DuckDuckGoSearchRun
+from langchain.callbacks.base import BaseCallbackHandler
+from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.retrievers.web_research import WebResearchRetriever
 
-def check_password():
-    """Returns `True` if the user had the correct password."""
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # don't store password
-        else:
-            st.session_state["password_correct"] = False
+import os
 
-    if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        # Password correct.
-        return True
+os.environ["GOOGLE_API_KEY"] = "YOUR_API_KEY" # Get it at https://console.cloud.google.com/apis/api/customsearch.googleapis.com/credentials
+os.environ["GOOGLE_CSE_ID"] = "YOUR_CSE_ID" # Get it at https://programmablesearchengine.google.com/
+os.environ["OPENAI_API_BASE"] = "https://api.openai.com/v1"
+os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY" # Get it at https://beta.openai.com/account/api-keys
 
-if check_password():
-    st.set_page_config(page_title="ChatWeb", page_icon="🌐")
-    st.header('Chatbot with Internet Access')
-    st.write('Equipped with internet access, enables users to ask questions about recent events')
+st.set_page_config(page_title="Interweb Explorer", page_icon="🌐")
 
-    openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-    selected_model = st.sidebar.selectbox('Select LLM model', ('gpt-4', 'gpt-3.5-turbo'))
+def settings():
 
-    msgs = StreamlitChatMessageHistory()
-    memory = ConversationBufferMemory(
-        chat_memory=msgs, return_messages=True, memory_key="chat_history", output_key="output"
+    # Vectorstore
+    import faiss
+    from langchain.vectorstores import FAISS 
+    from langchain.embeddings.openai import OpenAIEmbeddings
+    from langchain.docstore import InMemoryDocstore  
+    embeddings_model = OpenAIEmbeddings()  
+    embedding_size = 1536  
+    index = faiss.IndexFlatL2(embedding_size)  
+    vectorstore_public = FAISS(embeddings_model.embed_query, index, InMemoryDocstore({}), {})
+
+    # LLM
+    from langchain.chat_models import ChatOpenAI
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=0, streaming=True)
+
+    # Search
+    from langchain.utilities import GoogleSearchAPIWrapper
+    search = GoogleSearchAPIWrapper()   
+
+    # Initialize 
+    web_retriever = WebResearchRetriever.from_llm(
+        vectorstore=vectorstore_public,
+        llm=llm, 
+        search=search, 
+        num_search_results=3
     )
 
-    if len(msgs.messages) == 0 or st.sidebar.button("Reset chat history"):
-        msgs.clear()
-        msgs.add_ai_message("How can I help you?")
-        st.session_state.steps = {}
+    return web_retriever, llm
 
-    avatars = {"human": "user", "ai": "assistant"}
-    for idx, msg in enumerate(msgs.messages):
-        with st.chat_message(avatars[msg.type]):
-            for step in st.session_state.steps.get(str(idx), []):
-                if step[0].tool == "_Exception":
-                    continue
-                with st.status(f"**{step[0].tool}**: {step[0].tool_input}", state="complete"):
-                    st.write(step[0].log)
-                    st.write(step[1])
-            st.write(msg.content)
+class StreamHandler(BaseCallbackHandler):
+    def __init__(self, container, initial_text=""):
+        self.container = container
+        self.text = initial_text
 
-    if prompt := st.chat_input(placeholder="Ask me anything!"):
-        st.chat_message("user").write(prompt)
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+        self.text += token
+        self.container.info(self.text)
 
-        if not openai_api_key:
-            st.info("Please add your OpenAI API key to continue.")
-            st.stop()
 
-        llm = ChatOpenAI(model_name=selected_model, openai_api_key=openai_api_key, streaming=True)
-        tools = [DuckDuckGoSearchRun(name="Search")]
-        chat_agent = ConversationalChatAgent.from_llm_and_tools(llm=llm, tools=tools)
-        executor = AgentExecutor.from_agent_and_tools(
-            agent=chat_agent,
-            tools=tools,
-            memory=memory,
-            return_intermediate_steps=True,
-            handle_parsing_errors=True,
-        )
+class PrintRetrievalHandler(BaseCallbackHandler):
+    def __init__(self, container):
+        self.container = container.expander("Context Retrieval")
 
-        with st.chat_message("assistant"):
-            st_cb = StreamlitCallbackHandler(st.container(), expand_new_thoughts=False)
-            response = executor(prompt, callbacks=[st_cb])
-            st.write(response["output"])
-            st.session_state.steps[str(len(msgs.messages) - 1)] = response["intermediate_steps"]
+    def on_retriever_start(self, query: str, **kwargs):
+        self.container.write(f"**Question:** {query}")
+
+    def on_retriever_end(self, documents, **kwargs):
+        # self.container.write(documents)
+        for idx, doc in enumerate(documents):
+            source = doc.metadata["source"]
+            self.container.write(f"**Results from {source}**")
+            self.container.text(doc.page_content)
+
+
+st.sidebar.image("img/ai.png")
+st.header("`Interweb Explorer`")
+st.info("`I am an AI that can answer questions by exploring, reading, and summarizing web pages."
+    "I can be configured to use different modes: public API or private (no data sharing).`")
+
+# Make retriever and llm
+if 'retriever' not in st.session_state:
+    st.session_state['retriever'], st.session_state['llm'] = settings()
+web_retriever = st.session_state.retriever
+llm = st.session_state.llm
+
+# User input 
+question = st.text_input("`Ask a question:`")
+
+if question:
+
+    # Generate answer (w/ citations)
+    import logging
+    logging.basicConfig()
+    logging.getLogger("langchain.retrievers.web_research").setLevel(logging.INFO)    
+    qa_chain = RetrievalQAWithSourcesChain.from_chain_type(llm, retriever=web_retriever)
+
+    # Write answer and sources
+    retrieval_streamer_cb = PrintRetrievalHandler(st.container())
+    answer = st.empty()
+    stream_handler = StreamHandler(answer, initial_text="`Answer:`\n\n")
+    result = qa_chain({"question": question},callbacks=[retrieval_streamer_cb, stream_handler])
+    answer.info('`Answer:`\n\n' + result['answer'])
+    st.info('`Sources:`\n\n' + result['sources'])

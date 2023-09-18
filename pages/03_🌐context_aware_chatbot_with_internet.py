@@ -48,7 +48,6 @@ if check_password():
             self.openai_model = st.selectbox('Select LLM model', ('gpt-4', 'gpt-3.5-turbo'))
             self.memory = ConversationBufferMemory()  # Initialize memory object
 
-        @st.cache_resource
         def setup_chain(self):
             llm = ChatOpenAI(model_name=self.openai_model, streaming=True)
             chain = ConversationChain(llm=llm, memory=self.memory, verbose=True)

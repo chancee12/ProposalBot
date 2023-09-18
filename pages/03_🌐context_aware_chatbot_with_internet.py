@@ -48,41 +48,24 @@ if check_password():
             self.openai_model = st.selectbox('Select LLM model', ('gpt-4', 'gpt-3.5-turbo'))
             self.memory = ConversationBufferMemory()  # Initialize memory object
 
-        def setup_agent(self):
-            # Define tool
-            ddg_search = DuckDuckGoSearchRun()
-            tools = [
-                Tool(
-                    name="DuckDuckGoSearch",
-                    func=ddg_search.run,
-                    description="Useful for when you need to answer questions about current events. You should ask targeted questions",
-                )
-            ]
-
-            # Setup LLM and Agent
-            self.llm = ChatOpenAI(model_name=self.openai_model, streaming=True)
-            self.chain = ConversationChain(llm=self.llm, memory=self.memory, verbose=True)  # Create a chain object with memory
-            agent = initialize_agent(
-                tools=tools,
-                llm=self.llm,  # Pass the llm object here
-                agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-                handle_parsing_errors=True,
-                verbose=True
-            )
-            return agent
+        @st.cache_resource
+        def setup_chain(self):
+            llm = ChatOpenAI(model_name=self.openai_model, streaming=True)
+            chain = ConversationChain(llm=llm, memory=self.memory, verbose=True)
+            return chain
 
         @utils.enable_chat_history
         def main(self):
-            agent = self.setup_agent()
+            chain = self.setup_chain()
             user_query = st.chat_input(placeholder="Ask me anything!")
             if user_query:
                 utils.display_msg(user_query, 'user')
                 with st.chat_message("assistant"):
                     st_cb = StreamlitCallbackHandler(st.container())
-                    response = self.chain.run(user_query, callbacks=[st_cb])  # Use chain.run instead of agent.run
+                    response = chain.run(user_query, callbacks=[st_cb])
                     st.session_state.messages.append({"role": "assistant", "content": response})
                     st.write(response)
 
     if __name__ == "__main__":
         obj = ChatbotTools()
-        obj.main()  # This line calls the main method, which will display the input box
+        obj.main()

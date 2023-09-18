@@ -34,17 +34,18 @@ def check_password():
         return True
 
 if check_password():
-
-    st.set_page_config(page_title="LangChain: Chat with search", page_icon="🦜")
-    st.title("🦜 LangChain: Chat with search")
+    st.set_page_config(page_title="ChatWeb", page_icon="🌐")
+    st.header('Chatbot with Internet Access')
+    st.write('Equipped with internet access, enables users to ask questions about recent events')
 
     openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-    openai_model = st.sidebar.selectbox('Select LLM model', ('gpt-4', 'gpt-3.5-turbo'))
+    selected_model = st.sidebar.selectbox('Select LLM model', ('gpt-4', 'gpt-3.5-turbo'))
 
     msgs = StreamlitChatMessageHistory()
     memory = ConversationBufferMemory(
         chat_memory=msgs, return_messages=True, memory_key="chat_history", output_key="output"
     )
+
     if len(msgs.messages) == 0 or st.sidebar.button("Reset chat history"):
         msgs.clear()
         msgs.add_ai_message("How can I help you?")
@@ -53,7 +54,6 @@ if check_password():
     avatars = {"human": "user", "ai": "assistant"}
     for idx, msg in enumerate(msgs.messages):
         with st.chat_message(avatars[msg.type]):
-            # Render intermediate steps if any were saved
             for step in st.session_state.steps.get(str(idx), []):
                 if step[0].tool == "_Exception":
                     continue
@@ -62,14 +62,14 @@ if check_password():
                     st.write(step[1])
             st.write(msg.content)
 
-    if prompt := st.chat_input(placeholder="Who won the Women's U.S. Open in 2018?"):
+    if prompt := st.chat_input(placeholder="Ask me anything!"):
         st.chat_message("user").write(prompt)
 
         if not openai_api_key:
             st.info("Please add your OpenAI API key to continue.")
             st.stop()
 
-        llm = ChatOpenAI(model_name=openai_model, openai_api_key=openai_api_key, streaming=True)
+        llm = ChatOpenAI(model_name=selected_model, openai_api_key=openai_api_key, streaming=True)
         tools = [DuckDuckGoSearchRun(name="Search")]
         chat_agent = ConversationalChatAgent.from_llm_and_tools(llm=llm, tools=tools)
         executor = AgentExecutor.from_agent_and_tools(
@@ -79,6 +79,7 @@ if check_password():
             return_intermediate_steps=True,
             handle_parsing_errors=True,
         )
+
         with st.chat_message("assistant"):
             st_cb = StreamlitCallbackHandler(st.container(), expand_new_thoughts=False)
             response = executor(prompt, callbacks=[st_cb])

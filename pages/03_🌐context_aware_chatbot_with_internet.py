@@ -61,10 +61,9 @@ if check_password():
 
             # Setup LLM and Agent
             llm = ChatOpenAI(model_name=self.openai_model, streaming=True)
-            chain = ConversationChain(llm=llm, memory=self.memory, verbose=True)  # Include memory object in chain setup
             agent = initialize_agent(
                 tools=tools,
-                llm=chain,  # Modify this to include the chain object instead of llm
+                llm=llm,  # Pass the llm object here
                 agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
                 handle_parsing_errors=True,
                 verbose=True

@@ -85,3 +85,4 @@ if check_password():
 
     if __name__ == "__main__":
         obj = ChatbotTools()
+        obj.main()  # This line calls the main method, which will display the input box

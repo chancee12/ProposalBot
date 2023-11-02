@@ -40,8 +40,6 @@ if check_password():
         """
         Chancee Vincent:
         [LinkedIn](https://www.linkedin.com/in/chancee-vincent-4371651b6)
-        
-        Enjoyed the site? [Buy Me a Coffee](https://www.buymeacoffee.com/chanceevins)
         """
     )
 

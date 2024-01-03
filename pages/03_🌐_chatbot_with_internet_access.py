@@ -1,6 +1,6 @@
 import utils
 import streamlit as st
-
+from langchain.tools.base import ToolException
 from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import DuckDuckGoSearchRun
@@ -49,6 +49,13 @@ if check_password():
         def setup_agent(self):
             # Define tool
             ddg_search = DuckDuckGoSearchRun()
+
+            def safe_ddg_run(query):
+                try:
+                    return ddg_search.run(query)
+                except httpx.HTTPError as e:
+                    raise ToolException(f"DuckDuckGo Search encountered HTTPError: {e}")
+
             tools = [
                 Tool(
                     name="DuckDuckGoSearch",
